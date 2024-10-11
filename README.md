@@ -115,6 +115,8 @@
 - Um email também deve ser enviado para a empresa parceira contendo o código do cupom.
 - O código deve ser único e gerado automaticamente pelo sistema.
 
+---
+
 ## Diagrama de Classes 
 ![diagrama de Classes](Diagrams/diagrama_de_classes.png)
 
