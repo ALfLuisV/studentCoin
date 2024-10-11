@@ -4,7 +4,9 @@
 
 ## US 1. Cadastro de Aluno
 **Como** aluno,
+
 **Quero** realizar um cadastro no sistema,
+
 **Para que** eu possa participar do sistema de reconhecimento de mérito e acumular moedas.
 
 ### Critérios de aceitação.
@@ -13,7 +15,9 @@
 
 ## US 2. Cadastro de Empresa Parceira
 **Como** empresa parceira,
+
 **Quero** me cadastrar no sistema,
+
 **Para que** eu possa oferecer vantagens aos alunos e atrair clientes potenciais.
 
 ### Critérios de aceitação.
@@ -22,7 +26,9 @@
 
 ## US 3. Cadastro de Professor
 **Como** instituição de ensino,
+
 **Quero** cadastrar os professores do meu corpo docente,
+
 **Para que** eles possam participar da distribuição de moedas aos alunos.
 
 ### Critérios de aceitação.
@@ -31,7 +37,9 @@
 
 ## US 4. Login e Autenticação
 **Como** usuário (aluno, professor ou empresa parceira),
+
 **Quero** acessar o sistema utilizando login e senha,
+
 **Para que** eu possa realizar operações de acordo com meu perfil.
 
 ### Critérios de aceitação.
@@ -40,7 +48,9 @@
 
 ## US 5. Distribuição de Moedas pelo Professor
 **Como** professor,
+
 **Quero** distribuir moedas virtuais para meus alunos,
+
 **Para que** eu possa reconhecer seu bom comportamento e desempenho.
 
 ### Critérios de aceitação.
@@ -50,7 +60,9 @@
 
 ## US 6. Notificação de Recebimento de Moeda
 **Como** aluno,
+
 **Quero** ser notificado por email ao receber uma moeda,
+
 **Para que** eu possa saber quando estou sendo reconhecido.
 
 ### Critérios de aceitação.
@@ -59,7 +71,9 @@
 
 ## US 7. Consulta de Extrato de Conta
 **Como** aluno ou professor,
+
 **Quero** consultar o extrato da minha conta,
+
 **Para que** eu possa visualizar as transações realizadas e o saldo de moedas.
 
 ### Critérios de aceitação.
@@ -68,7 +82,9 @@
 
 ## US 8. Troca de Moedas por Vantagens
 **Como** aluno,
+
 **Quero** trocar minhas moedas acumuladas por vantagens,
+
 **Para que** eu possa usufruir de produtos ou descontos em empresas parceiras.
 
 ### Critérios de aceitação.
@@ -78,7 +94,9 @@
 
 ## US 9. Cadastro de Vantagem pela Empresa Parceira
 **Como** empresa parceira,
+
 **Quero** cadastrar vantagens no sistema,
+
 **Para que** os alunos possam trocar suas moedas por produtos ou serviços.
 
 ### Critérios de aceitação.
@@ -87,7 +105,9 @@
 
 ## US 10. Envio de Cupom para Troca
 **Como** aluno,
+
 **Quero** receber um cupom ao realizar uma troca de moedas por uma vantagem,
+
 **Para que** eu possa utilizá-lo em empresas parceiras.
 
 ### Critérios de aceitação.
