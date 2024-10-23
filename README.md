@@ -123,3 +123,6 @@
 ## Diagrama de Casos de Uso 
 ![diagrama de Casos de Uso](Diagrams/diagrama_casos_de_uso.png)
 
+## Diagrama Lógico
+![diagrama Lógico](Diagrams/diagrama-logico.png)
+
