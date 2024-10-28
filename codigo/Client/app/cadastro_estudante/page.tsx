@@ -1,6 +1,6 @@
 'use client'
-
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import Axios from "axios";
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -91,6 +91,21 @@ export default function CadastroEstudante() {
         }
     }
 
+
+    async function fetchStudents() {
+        try {
+          const response = await Axios.get("http://localhost:3001/alunos/all");
+          console.log(response.data)
+        } catch (e) {
+          console.log(e);
+        }
+      }
+
+
+
+    useEffect(() => {
+        fetchStudents()
+      }, []);
     return (
         <div className='containerr'>
             <Card className="w-full max-w-2xl mx-auto">
