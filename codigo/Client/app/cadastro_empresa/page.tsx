@@ -1,6 +1,7 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import Axios from "axios";
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -72,14 +73,36 @@ export default function CadastroEmpresa() {
         setVantagens(vantagens.filter((_, i) => i !== index))
     }
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
+
         e.preventDefault()
         const formIsValid = Object.values(errors).every(error => error === '') &&
-            Object.values(formData).every(value => value !== '') &&
-            vantagens.length > 0
+            Object.values(formData).every(value => value !== '')
         if (formIsValid) {
             console.log('Formulário enviado:', { ...formData, vantagens })
-            // Adicione sua lógica de envio aqui
+            try{
+                const response = await Axios.post("http://localhost:3001/empresas/", {
+                    nome: formData.nomeEmpresa,
+                    CNPJ: formData.cnpj,
+                    email: formData.email,
+                    senha: formData.senha,
+                });
+    
+                // Obtém o id do endereço retornado pela API
+                const idEmpresa = response.data.id;
+            if(vantagens.length != 0){
+                const requsition = await Axios.post("http://localhost:3001/vantagem/",{
+                    id: idEmpresa,
+                    ArrayVantagens: vantagens
+                });
+            }
+
+            alert("Cadastro realizado com sucesso!!!!!!!!!")
+            } catch(e){
+                alert("Algo deu errado :(")
+                console.log(e)
+            }
+            
         } else {
             console.log('Existem erros no formulário.')
         }
