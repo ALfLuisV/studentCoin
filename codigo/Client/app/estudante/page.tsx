@@ -5,43 +5,43 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { ScrollArea } from "@/components/ui/scroll-area"
 
-// Mock data for advantages
-const advantages = [
+// Dados fictícios para vantagens
+const vantagens = [
     { id: '1', name: 'Desconto no RU', description: 'Desconto de 50% no Restaurante Universitário', value: 100 },
     { id: '2', name: 'Desconto na mensalidade', description: '10% de desconto na próxima mensalidade', value: 500 },
     { id: '3', name: 'Material escolar', description: 'Kit de material escolar gratuito', value: 200 },
     { id: '4', name: 'Curso extra', description: 'Curso extracurricular gratuito', value: 300 },
 ]
 
-interface RedeemedBenefit {
+interface VantagemResgatada {
     id: string;
     name: string;
     value: number;
     redeemedAt: Date;
 }
 
-export default function StudentDashboard() {
-    const [studentName] = useState('João Silva')
-    const [coins, setCoins] = useState(1000)
-    const [selectedAdvantage, setSelectedAdvantage] = useState<typeof advantages[0] | null>(null)
-    const [redeemedBenefits, setRedeemedBenefits] = useState<RedeemedBenefit[]>([])
+export default function PainelEstudante() {
+    const [nomeEstudante] = useState('João Silva')
+    const [moedas, setMoedas] = useState(1000)
+    const [vantagemSelecionada, setVantagemSelecionada] = useState<typeof vantagens[0] | null>(null)
+    const [vantagensResgatadas, setVantagensResgatadas] = useState<VantagemResgatada[]>([])
 
-    const handleSelectAdvantage = (advantage: typeof advantages[0]) => {
-        setSelectedAdvantage(advantage)
+    const handleSelectVantagem = (vantagem: typeof vantagens[0]) => {
+        setVantagemSelecionada(vantagem)
     }
 
-    const handleRedeemAdvantage = () => {
-        if (selectedAdvantage && coins >= selectedAdvantage.value) {
-            setCoins(prevCoins => prevCoins - selectedAdvantage.value)
-            const newRedeemedBenefit: RedeemedBenefit = {
-                id: selectedAdvantage.id,
-                name: selectedAdvantage.name,
-                value: selectedAdvantage.value,
+    const handleResgatarVantagem = () => {
+        if (vantagemSelecionada && moedas >= vantagemSelecionada.value) {
+            setMoedas(prevMoedas => prevMoedas - vantagemSelecionada.value)
+            const novaVantagemResgatada: VantagemResgatada = {
+                id: vantagemSelecionada.id,
+                name: vantagemSelecionada.name,
+                value: vantagemSelecionada.value,
                 redeemedAt: new Date()
             }
-            setRedeemedBenefits(prev => [...prev, newRedeemedBenefit])
-            alert(`Vantagem "${selectedAdvantage.name}" resgatada com sucesso!`)
-            setSelectedAdvantage(null)
+            setVantagensResgatadas(prev => [...prev, novaVantagemResgatada])
+            alert(`Vantagem "${vantagemSelecionada.name}" resgatada com sucesso!`)
+            setVantagemSelecionada(null)
         } else {
             alert('Moedas insuficientes para resgatar esta vantagem.')
         }
@@ -52,9 +52,9 @@ export default function StudentDashboard() {
             <Card className="w-full h-full">
                 <CardHeader className="border-b-2">
                     <div className="flex justify-between items-center">
-                        <CardTitle className="text-2xl font-bold">Olá, {studentName}</CardTitle>
+                        <CardTitle className="text-2xl font-bold">Olá, {nomeEstudante}</CardTitle>
                         <div className="text-xl font-mono">
-                            Moedas: <span className="text-xl font-bold">{coins}</span>
+                            Moedas: <span className="text-xl font-bold">{moedas}</span>
                         </div>
                     </div>
                 </CardHeader>
@@ -63,17 +63,17 @@ export default function StudentDashboard() {
                         <div>
                             <h2 className="text-xl font-medium mb-2">Vantagens Disponíveis</h2>
                             <ScrollArea className="h-[calc(100vh-200px)] border rounded-md">
-                                {advantages.map(advantage => (
+                                {vantagens.map(vantagem => (
                                     <div
-                                        key={advantage.id}
-                                        className={`p-2 cursor-pointer transition-colors ${selectedAdvantage?.id === advantage.id
+                                        key={vantagem.id}
+                                        className={`p-2 cursor-pointer transition-colors ${vantagemSelecionada?.id === vantagem.id
                                             ? 'bg-primary/10 dark:bg-primary/20'
                                             : 'hover:bg-gray-100 dark:hover:bg-gray-800'
                                             }`}
-                                        onClick={() => handleSelectAdvantage(advantage)}
+                                        onClick={() => handleSelectVantagem(vantagem)}
                                     >
-                                        <div className="font-medium">{advantage.name}</div>
-                                        <div className="text-sm text-gray-500 dark:text-gray-400">{advantage.value} moedas</div>
+                                        <div className="font-medium">{vantagem.name}</div>
+                                        <div className="text-sm text-gray-500 dark:text-gray-400">{vantagem.value} moedas</div>
                                     </div>
                                 ))}
                             </ScrollArea>
@@ -81,12 +81,12 @@ export default function StudentDashboard() {
                         <div className="space-y-4">
                             <div>
                                 <h2 className="text-xl font-medium mb-2">Detalhes da Vantagem</h2>
-                                {selectedAdvantage ? (
+                                {vantagemSelecionada ? (
                                     <div className="space-y-2 p-4 border rounded-md">
-                                        <h4 className="font-medium">{selectedAdvantage.name}</h4>
-                                        <p className="text-sm text-gray-500 dark:text-gray-400">{selectedAdvantage.description}</p>
-                                        <p className="text-sm">Valor: <span className="font-semibold">{selectedAdvantage.value} moedas</span></p>
-                                        <Button className="w-full" onClick={handleRedeemAdvantage}>
+                                        <h4 className="font-medium">{vantagemSelecionada.name}</h4>
+                                        <p className="text-sm text-gray-500 dark:text-gray-400">{vantagemSelecionada.description}</p>
+                                        <p className="text-sm">Valor: <span className="font-semibold">{vantagemSelecionada.value} moedas</span></p>
+                                        <Button className="w-full" onClick={handleResgatarVantagem}>
                                             Resgatar Vantagem
                                         </Button>
                                     </div>
@@ -97,15 +97,15 @@ export default function StudentDashboard() {
                             <div>
                                 <h2 className="text-xl font-medium mb-2">Vantagens Resgatadas</h2>
                                 <ScrollArea className="h-[500px] border rounded-md">
-                                    {redeemedBenefits.length > 0 ? (
-                                        redeemedBenefits.map((benefit, index) => (
+                                    {vantagensResgatadas.length > 0 ? (
+                                        vantagensResgatadas.map((vantagem, index) => (
                                             <div key={index} className="p-2 border-b last:border-b-0">
                                                 <div className="flex justify-between items-center">
-                                                    <span className="font-medium">{benefit.name}</span>
-                                                    <span className="text-sm text-gray-500 dark:text-gray-400">{benefit.value} moedas</span>
+                                                    <span className="font-medium">{vantagem.name}</span>
+                                                    <span className="text-sm text-gray-500 dark:text-gray-400">{vantagem.value} moedas</span>
                                                 </div>
                                                 <div className="text-xs text-gray-400 dark:text-gray-500">
-                                                    Resgatado em: {benefit.redeemedAt.toLocaleDateString()}
+                                                    Resgatado em: {vantagem.redeemedAt.toLocaleDateString()}
                                                 </div>
                                             </div>
                                         ))
