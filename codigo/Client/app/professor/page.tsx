@@ -3,9 +3,6 @@
 import { useState } from 'react'
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
 import { ScrollArea } from "@/components/ui/scroll-area"
 
 // Mock data for students
@@ -13,17 +10,26 @@ const students = [
     { id: '1', name: 'Alice Silva' },
     { id: '2', name: 'Bob Santos' },
     { id: '3', name: 'Carol Oliveira' },
-    { id: '4', name: 'David Lima' },
-    { id: '5', name: 'Eva Pereira' },
 ]
+
+interface SendHistory {
+    student: string;
+    amount: number;
+    description: string;
+    date: string;
+}
 
 export default function TeacherDashboard() {
     const [teacherName] = useState('Maria Souza')
     const [coins, setCoins] = useState(1000)
-    const [selectedStudent, setSelectedStudent] = useState('')
+    const [selectedStudent, setSelectedStudent] = useState<typeof students[0] | null>(null)
     const [sendValue, setSendValue] = useState('')
     const [description, setDescription] = useState('')
-    const [history, setHistory] = useState([])
+    const [sendHistory, setSendHistory] = useState<SendHistory[]>([])
+
+    const handleSelectStudent = (student: typeof students[0]) => {
+        setSelectedStudent(student)
+    }
 
     const handleSendCoins = () => {
         const amount = parseInt(sendValue, 10)
@@ -40,25 +46,21 @@ export default function TeacherDashboard() {
             return
         }
 
-        // Here you would typically send this data to your backend
-        console.log('Enviando moedas:', { student: selectedStudent, amount, description })
-
-        // Update the coin balance
+        // Deduzindo as moedas e adicionando ao histórico
         setCoins(prevCoins => prevCoins - amount)
+        const newSendHistory: SendHistory = {
+            student: selectedStudent.name,
+            amount,
+            description,
+            date: new Date().toLocaleString(),
+        }
+        setSendHistory(prev => [newSendHistory, ...prev])
 
-        // Add to history
-        const studentName = students.find(s => s.id === selectedStudent)?.name
-        setHistory(prevHistory => [
-            { student: studentName, amount, description, date: new Date().toLocaleString() },
-            ...prevHistory
-        ])
-
-        // Reset the form
-        setSelectedStudent('')
+        // Resetando o formulário
+        setSelectedStudent(null)
         setSendValue('')
         setDescription('')
-
-        alert('Moedas enviadas com sucesso!')
+        alert(`Moedas enviadas para ${selectedStudent.name} com sucesso!`)
     }
 
     return (
@@ -75,59 +77,70 @@ export default function TeacherDashboard() {
                 <CardContent className="p-4">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 h-full">
                         <div>
-                            <h2 className="text-xl font-semibold mb-4">Lista de Alunos</h2>
-                            <ScrollArea className="h-[calc(100vh-240px)]">
+                            <h2 className="text-xl font-medium mb-2">Alunos Disponíveis</h2>
+                            <ScrollArea className="h-[calc(100vh-200px)] border rounded-md">
                                 {students.map(student => (
-                                    <Button
+                                    <div
                                         key={student.id}
-                                        variant={selectedStudent === student.id ? "default" : "outline"}
-                                        className="w-full justify-start mb-2"
-                                        onClick={() => setSelectedStudent(student.id)}
+                                        className={`p-2 cursor-pointer transition-colors ${selectedStudent?.id === student.id
+                                            ? 'bg-primary/10 dark:bg-primary/20'
+                                            : 'hover:bg-gray-100 dark:hover:bg-gray-800'
+                                            }`}
+                                        onClick={() => handleSelectStudent(student)}
                                     >
-                                        {student.name}
-                                    </Button>
+                                        <div className="font-medium">{student.name}</div>
+                                    </div>
                                 ))}
                             </ScrollArea>
                         </div>
-                        <div className="flex-1 px-4 border-l border-r">
-                            <h2 className="text-xl font-semibold mb-4">Enviar Moedas</h2>
-                            <form className="space-y-4">
-                                <div className="space-y-2">
-                                    <Label htmlFor="sendValue">Valor do Envio</Label>
-                                    <Input
-                                        id="sendValue"
-                                        type="number"
-                                        placeholder="Quantidade de moedas"
-                                        value={sendValue}
-                                        onChange={(e) => setSendValue(e.target.value)}
-                                    />
-                                </div>
-                                <div className="space-y-2">
-                                    <Label htmlFor="description">Descrição</Label>
-                                    <Textarea
-                                        id="description"
-                                        placeholder="Motivo do envio de moedas"
-                                        value={description}
-                                        onChange={(e) => setDescription(e.target.value)}
-                                    />
-                                </div>
-                                <Button type="button" className="w-full" onClick={handleSendCoins}>
-                                    Enviar Moedas
-                                </Button>
-                            </form>
-                        </div>
-                        <div className="flex-1 pl-4">
-                            <h2 className="text-xl font-semibold mb-4">Histórico de Envios</h2>
-                            <ScrollArea className="h-[calc(100vh-240px)]">
-                                {history.map((item, index) => (
-                                    <Card key={index} className="mb-4 p-4">
-                                        <p className="font-semibold">{item.student}</p>
-                                        <p>Moedas: {item.amount}</p>
-                                        <p>Descrição: {item.description}</p>
-                                        <p className="text-sm text-gray-500">{item.date}</p>
-                                    </Card>
-                                ))}
-                            </ScrollArea>
+                        <div className="space-y-4">
+                            <div>
+                                <h2 className="text-xl font-medium mb-2">Enviar Moedas</h2>
+                                {selectedStudent ? (
+                                    <div className="space-y-2 p-4 border rounded-md">
+                                        <p className="font-medium">Aluno: {selectedStudent.name}</p>
+                                        <input
+                                            type="number"
+                                            placeholder="Quantidade de moedas"
+                                            className="w-full border rounded-md p-2"
+                                            value={sendValue}
+                                            onChange={(e) => setSendValue(e.target.value)}
+                                        />
+                                        <textarea
+                                            placeholder="Motivo do envio de moedas"
+                                            className="w-full border rounded-md p-2"
+                                            value={description}
+                                            onChange={(e) => setDescription(e.target.value)}
+                                        />
+                                        <Button className="w-full" onClick={handleSendCoins}>
+                                            Enviar Moedas
+                                        </Button>
+                                    </div>
+                                ) : (
+                                    <p className="text-sm text-gray-500 dark:text-gray-400">Selecione um aluno para enviar moedas.</p>
+                                )}
+                            </div>
+                            <div>
+                                <h2 className="text-xl font-medium mb-2">Histórico de Envios</h2>
+                                <ScrollArea className="h-[430px] border rounded-md">
+                                    {sendHistory.length > 0 ? (
+                                        sendHistory.map((item, index) => (
+                                            <div key={index} className="p-2 border-b last:border-b-0">
+                                                <div className="flex justify-between items-center">
+                                                    <span className="font-medium">{item.student}</span>
+                                                    <span className="text-sm text-gray-500 dark:text-gray-400">{item.amount} moedas</span>
+                                                </div>
+                                                <p className="text-sm text-gray-500 dark:text-gray-400">Descrição: {item.description}</p>
+                                                <div className="text-xs text-gray-400 dark:text-gray-500">
+                                                    Enviado em: {item.date}
+                                                </div>
+                                            </div>
+                                        ))
+                                    ) : (
+                                        <p className="p-2 text-sm text-gray-500 dark:text-gray-400">Nenhum envio realizado.</p>
+                                    )}
+                                </ScrollArea>
+                            </div>
                         </div>
                     </div>
                 </CardContent>
