@@ -1,60 +1,139 @@
 'use client'
-
-import { useState } from 'react'
+import Axios from "axios";
+import { useEffect, useState } from 'react'
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { ScrollArea } from "@/components/ui/scroll-area"
+import style from './student.module.css'
 
-// Dados fictícios para vantagens
-const vantagens = [
-    { id: '1', name: 'Desconto no RU', description: 'Desconto de 50% no Restaurante Universitário', value: 100 },
-    { id: '2', name: 'Desconto na mensalidade', description: '10% de desconto na próxima mensalidade', value: 500 },
-    { id: '3', name: 'Material escolar', description: 'Kit de material escolar gratuito', value: 200 },
-    { id: '4', name: 'Curso extra', description: 'Curso extracurricular gratuito', value: 300 },
-]
 
 interface VantagemResgatada {
-    id: string;
-    name: string;
-    value: number;
-    redeemedAt: Date;
+    vantagem_aluno: string;
+    vantagem_cupom: String;
+    vantagem_data: Date;
+    vantagem_desc: string,
+    vantagem_id: number;
+    vantagem_nome: String,
+    vavantagem_nomeempresa: String;
+    vantagem_valor: Number;
+}
+
+interface vantagem {
+    vantagem_nome: string;
+    vantagem_id: number;
+    vantagem_valor: number;
+    vantagem_foto: any;
+    vantagem_descricao: number;
+    empresa_nome: string
+}
+
+interface aluno {
+    cpf: string,
+    nome: string,
+    email: string,
+    rg: string,
+    moedas: number,
 }
 
 export default function PainelEstudante() {
-    const [nomeEstudante] = useState('João Silva')
-    const [moedas, setMoedas] = useState(1000)
     const [vantagemSelecionada, setVantagemSelecionada] = useState<typeof vantagens[0] | null>(null)
     const [vantagensResgatadas, setVantagensResgatadas] = useState<VantagemResgatada[]>([])
+    const [vantagens, setVantagens] = useState<vantagem[]>([])
+    const [idAlunoLogado, setIdAlunoLogado] = useState("90123456789") //quandp o login for realizado, esta variavel deve armazenar o id do aluno 
+    const [alunoLogado, setAlunoLogado] = useState<aluno>()
 
     const handleSelectVantagem = (vantagem: typeof vantagens[0]) => {
+        console.log(vantagem)
         setVantagemSelecionada(vantagem)
     }
 
-    const handleResgatarVantagem = () => {
-        if (vantagemSelecionada && moedas >= vantagemSelecionada.value) {
-            setMoedas(prevMoedas => prevMoedas - vantagemSelecionada.value)
-            const novaVantagemResgatada: VantagemResgatada = {
-                id: vantagemSelecionada.id,
-                name: vantagemSelecionada.name,
-                value: vantagemSelecionada.value,
-                redeemedAt: new Date()
+    async function handleResgatarVantagem() {
+        if (vantagemSelecionada && (alunoLogado?.moedas ?? 0) >= vantagemSelecionada.vantagem_valor) {
+            try {
+                console.log(alunoLogado?.cpf)
+                const response = await Axios.post("http://localhost:3001/resgate/", {
+                    aluno: alunoLogado?.cpf,
+                    vantagem: vantagemSelecionada.vantagem_id,
+                    data: new Date().toLocaleString(),
+                    valor: vantagemSelecionada.vantagem_valor,
+                    cupom: String(gerarCodigo()),
+                });
+            } catch (error) {
+                alert("Erro ao registrar resgate")
+
             }
-            setVantagensResgatadas(prev => [...prev, novaVantagemResgatada])
-            alert(`Vantagem "${vantagemSelecionada.name}" resgatada com sucesso!`)
+
+            try {
+                const insertCoins = await Axios.put(`http://localhost:3001/alunos/reduce/${alunoLogado?.cpf}`, {
+                    value: vantagemSelecionada.vantagem_valor,
+                });
+            } catch (error) {
+                alert("Erro ao descontar moedas da conta")
+            }
+
+
+            fetchStudentInfo()
+
+            alert(`Vantagem "${vantagemSelecionada.vantagem_nome}" resgatada com sucesso!`)
             setVantagemSelecionada(null)
         } else {
             alert('Moedas insuficientes para resgatar esta vantagem.')
         }
     }
 
+
+    async function fetchVantagens() {
+        try {
+            const vantagens = await Axios.get("http://localhost:3001/vantagem/all")
+            setVantagens(vantagens.data)
+        } catch (error) {
+            alert("Impossivel buscar as vantagens")
+        }
+    }
+
+
+    async function fetchVantagensResgatadas() {
+        if (alunoLogado?.cpf) {
+            try {
+                const vantagensObtidas = await Axios.get(`http://localhost:3001/resgate/get/${alunoLogado?.cpf}`)
+                setVantagensResgatadas(vantagensObtidas.data)
+            } catch (error) {
+                alert("Erro ao recuperar vantagens obtidas")
+            }
+        }
+    }
+
+
+    async function fetchStudentInfo() {
+        try {
+            const aluno = await Axios.get(`http://localhost:3001/alunos/get/${idAlunoLogado}`)
+            setAlunoLogado(aluno.data)
+        } catch (error) {
+            alert("Impossivel buscar informações do estudante")
+        }
+    }
+
+
+    function gerarCodigo() {
+        return Math.floor(Math.random() * (1000000000 - 0 + 1) + 0);
+    }
+
+    useEffect(() => {
+        fetchVantagensResgatadas()
+    }, [alunoLogado]);
+
+    useEffect(() => {
+        fetchVantagens()
+        fetchStudentInfo()
+    }, []);
     return (
         <div className="w-screen h-screen bg-gray-50 dark:bg-gray-900 p-4 overflow-hidden">
             <Card className="w-full h-full">
                 <CardHeader className="border-b-2">
                     <div className="flex justify-between items-center">
-                        <CardTitle className="text-2xl font-bold">Olá, {nomeEstudante}</CardTitle>
+                        <CardTitle className="text-2xl font-bold">Olá, {alunoLogado?.nome}</CardTitle>
                         <div className="text-xl font-mono">
-                            Moedas: <span className="text-xl font-bold">{moedas}</span>
+                            Moedas: <span className="text-xl font-bold">{alunoLogado?.moedas}</span>
                         </div>
                     </div>
                 </CardHeader>
@@ -65,15 +144,18 @@ export default function PainelEstudante() {
                             <ScrollArea className="h-[calc(100vh-200px)] border rounded-md">
                                 {vantagens.map(vantagem => (
                                     <div
-                                        key={vantagem.id}
-                                        className={`p-2 cursor-pointer transition-colors ${vantagemSelecionada?.id === vantagem.id
+                                        key={vantagem.vantagem_id}
+                                        className={`p-2 cursor-pointer transition-colors ${vantagemSelecionada?.vantagem_id === vantagem.vantagem_id
                                             ? 'bg-primary/10 dark:bg-primary/20'
                                             : 'hover:bg-gray-100 dark:hover:bg-gray-800'
                                             }`}
                                         onClick={() => handleSelectVantagem(vantagem)}
                                     >
-                                        <div className="font-medium">{vantagem.name}</div>
-                                        <div className="text-sm text-gray-500 dark:text-gray-400">{vantagem.value} moedas</div>
+                                        <div className={style.nomeVantagem}>
+                                            <div className="font-medium">{vantagem.vantagem_nome}</div>
+                                            <div className="font-small">{vantagem.empresa_nome}</div>
+                                        </div>
+                                        <div className="text-sm text-gray-500 dark:text-gray-400">{vantagem.vantagem_valor} moedas</div>
                                     </div>
                                 ))}
                             </ScrollArea>
@@ -83,9 +165,10 @@ export default function PainelEstudante() {
                                 <h2 className="text-xl font-medium mb-2">Detalhes da Vantagem</h2>
                                 {vantagemSelecionada ? (
                                     <div className="space-y-2 p-4 border rounded-md">
-                                        <h4 className="font-medium">{vantagemSelecionada.name}</h4>
-                                        <p className="text-sm text-gray-500 dark:text-gray-400">{vantagemSelecionada.description}</p>
-                                        <p className="text-sm">Valor: <span className="font-semibold">{vantagemSelecionada.value} moedas</span></p>
+                                        <h4 className="font-medium">{vantagemSelecionada.vantagem_nome}</h4>
+                                        <span className="font-small">{vantagemSelecionada.empresa_nome}</span>
+                                        <p className="text-sm text-gray-500 dark:text-gray-400">{vantagemSelecionada.vantagem_descricao}</p>
+                                        <p className="text-sm">Valor: <span className="font-semibold">{vantagemSelecionada.vantagem_valor} moedas</span></p>
                                         <Button className="w-full" onClick={handleResgatarVantagem}>
                                             Resgatar Vantagem
                                         </Button>
@@ -101,11 +184,14 @@ export default function PainelEstudante() {
                                         vantagensResgatadas.map((vantagem, index) => (
                                             <div key={index} className="p-2 border-b last:border-b-0">
                                                 <div className="flex justify-between items-center">
-                                                    <span className="font-medium">{vantagem.name}</span>
-                                                    <span className="text-sm text-gray-500 dark:text-gray-400">{vantagem.value} moedas</span>
+                                                    <span className="font-medium">{vantagem.vantagem_nome}</span>
+                                                    <span className="text-sm text-gray-500 dark:text-gray-400">{vantagem.vantagem_valor.toString()} moedas</span>
+                                                </div>
+                                                <div>
+                                                    <span className="font-small">Cupom: {vantagem.vantagem_cupom}</span>
                                                 </div>
                                                 <div className="text-xs text-gray-400 dark:text-gray-500">
-                                                    Resgatado em: {vantagem.redeemedAt.toLocaleDateString()}
+                                                    Resgatado em: {vantagem.vantagem_data.toLocaleString()}
                                                 </div>
                                             </div>
                                         ))

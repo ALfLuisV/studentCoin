@@ -12,7 +12,18 @@ router.use(bodyParser.urlencoded({ extended: true }));
 
 router.get('/all', async (req, res) => {
     try {
-        const queryResult = await connection.query('SELECT * FROM vantagem');
+        const queryResult = await connection.query(`SELECT 
+    v.id AS vantagem_id,
+    v.nome AS vantagem_nome,
+    v.descricao AS vantagem_descricao,
+    v.valor AS vantagem_valor,
+    v.foto AS vantagem_foto,
+    e.nome AS empresa_nome
+FROM 
+    vantagem v
+JOIN 
+    empresa e ON v.empresa = e.id;
+`);
         res.json(queryResult.rows);
     } catch (e) {
         console.error(e);
