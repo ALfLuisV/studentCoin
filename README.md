@@ -126,3 +126,6 @@
 ## Diagrama Lógico
 ![diagrama Lógico](Diagrams/diagrama-logico.png)
 
+## Diagrama de Sequencia
+![Diagrama de Sequencia](Diagrams/Diagrama_de_Sequencia.png)
+
