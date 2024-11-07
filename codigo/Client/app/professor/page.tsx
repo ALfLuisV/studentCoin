@@ -6,12 +6,6 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { ScrollArea } from "@/components/ui/scroll-area"
 
-// // Dados fictícios para alunos
-// const alunos = [
-//     { id: '1', nome: 'Alice Silva' },
-//     { id: '2', nome: 'Bob Santos' },
-//     { id: '3', nome: 'Carol Oliveira' },
-// ]
 
 interface HistoricoEnvio {
     aluno_nome: string;
@@ -28,18 +22,20 @@ interface Professor {
     departamento: string;
     instituicao: number;
     moedas: number;
+    email: String;
 }
 
 
 interface Student {
     id: string;
     nome: string;
+    email: string;
 }
 
 export default function PainelProfessor() {
-    const [professor, setProfessor] = useState<Professor>({ id: 0, nome: '', cpf: '', departamento: '', instituicao: 0, moedas: 0 })
+    const [professor, setProfessor] = useState<Professor>({ id: 0, nome: '', cpf: '', departamento: '', instituicao: 0, moedas: 0, email: '' })
     const [idProfessorLogado, setIdProfessorLogado] = useState(1) //quandp o login for realizado, esta variavel deve armazenar o id do professor 
-    const [alunos, setAlunos] = useState<{ id: string, nome: string }[]>([])
+    const [alunos, setAlunos] = useState<{ id: string, nome: string, email: string }[]>([])
     const [moedas, setMoedas] = useState(0)
     const [alunoSelecionado, setAlunoSelecionado] = useState<typeof alunos[0] | null>(null)
     const [valorEnvio, setValorEnvio] = useState(0)
@@ -48,6 +44,7 @@ export default function PainelProfessor() {
 
     const handleSelectAluno = (aluno: typeof alunos[0]) => {
         setAlunoSelecionado(aluno)
+        console.log(aluno)
     }
 
     async function handleEnviarMoedas() {
@@ -85,6 +82,7 @@ export default function PainelProfessor() {
         try {
             try {
                 //requisição para registrar a transação
+                console.log(alunoSelecionado)
                 const response = await Axios.post("http://localhost:3001/transacao/", {
                     prof: professor?.id,
                     aluno: alunoSelecionado.id,
@@ -111,7 +109,8 @@ export default function PainelProfessor() {
             } catch (e) {
                 console.log("Erro ao descontar moedas da transação")
             }
-
+            await profEmailSender()
+            await studentEmailSender()
             fetchTransactions()
             fetchProfessorInfo()
 
@@ -128,11 +127,85 @@ export default function PainelProfessor() {
         }
     }
 
+    async function profEmailSender() {
+        try {
+            const email = await Axios.post("http://localhost:3001/email/send-email", {
+                to: professor.email,
+                subject: "Assunto: Confirmação de Envio de Moedas",
+                text: generateProfEmailText(),
+            });
+
+            alert("Email enviado para professor com sucesso")
+        } catch (error) {
+            alert("Email não enviado")
+        }
+    }
+
+    async function studentEmailSender() {
+        try {
+            const email = await Axios.post("http://localhost:3001/email/send-email", {
+                to: alunoSelecionado?.email,
+                subject: "Assunto: Confirmação de Recebimento de Moedas",
+                text: generateStudentEmailText(),
+            });
+
+            alert("Email enviado para aluno com sucesso")
+        } catch (error) {
+            alert("Email não enviado")
+        }
+    }
+
+
+
+    function generateProfEmailText() {
+
+        let dataCorreta = new Date().toLocaleString()
+
+        return `Olá, ${professor.nome}!
+
+Esta mensagem é para confirmar que a transação de envio de moedas foi realizada com sucesso. Abaixo estão os detalhes da operação:
+
+📅 Data do Envio: ${dataCorreta}
+👤 Nome do Aluno: ${alunoSelecionado?.nome}
+💰 Valor Enviado: ${valorEnvio}
+📄 Descrição da Transação: ${descricao}
+
+Agradecemos por utilizar nosso sistema de moedas para aprimorar as interações e reconhecimentos na nossa comunidade educacional. Em caso de dúvidas ou necessidade de suporte, não hesite em nos contatar.
+
+Atenciosamente,
+Equipe Student-Tech`
+    }
+
+
+    function generateStudentEmailText() {
+        let data = new Date().toLocaleString()
+
+        return `Olá, ${alunoSelecionado?.nome}!
+
+Temos o prazer de informar que você recebeu moedas em sua conta. Confira abaixo os detalhes da transação:
+
+📅 Data do Recebimento: ${data}
+👤 Enviado por: ${professor.nome}
+💰 Valor Recebido: ${valorEnvio}
+📄 Descrição da Transação: ${descricao}
+
+Essas moedas poderão ser utilizadas para resgatar benefícios e vantagens oferecidos pela nossa plataforma. Em caso de dúvidas ou para mais informações sobre o uso das moedas, entre em contato com nosso suporte.
+
+Atenciosamente,
+Equipe Student-Tech`
+    }
+
+
+
+
+
+
+
     async function fetchProfessorInfo() {
-        try{
+        try {
             const response = await Axios.get(`http://localhost:3001/professor/get/${idProfessorLogado}`)
             setProfessor(response.data)
-        }catch(e){
+        } catch (e) {
             console.log("Erro ao carregar informações do professor")
         }
     }
@@ -159,24 +232,24 @@ export default function PainelProfessor() {
     }
 
     function tratarArrayDeTransacao(array: any[]) {
-     array.map((element) => {
+        array.map((element) => {
             const data = new Date(element.data);
-            
+
             element.data = data.toLocaleString("pt-BR", {
                 day: "2-digit",
                 month: "2-digit",
                 year: "numeric",
-              });
-        console.log(element)
+            });
+            console.log(element)
         });
         return array;
     }
 
 
-    function createStudentArray(array: { CPF: string; nome: string }[]): Student[] {
+    function createStudentArray(array: { cpf: string; nome: string, email: string }[]): Student[] {
         let studentArray: Student[] = [];
         for (const e of array) {
-            let line: Student = { id: e.CPF, nome: e.nome };
+            let line: Student = { id: e.cpf, nome: e.nome, email: e.email };
             studentArray.push(line);
         }
         setAlunos(studentArray);
@@ -186,7 +259,7 @@ export default function PainelProfessor() {
 
 
     function ordenarPorData(a: { data: string; }, b: { data: string; }) {
-        return a.data.localeCompare(b.data);
+        return b.data.localeCompare(a.data);
     }
 
 

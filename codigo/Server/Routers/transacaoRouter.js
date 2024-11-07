@@ -46,7 +46,7 @@ FROM
 JOIN 
     professor p ON t.professor = p.id
 JOIN 
-    aluno a ON t.aluno = a."CPF" 
+    aluno a ON t.aluno = a.cpf 
 WHERE 
     p.id = $1;`,[parseInt(idProf.id, 10)]);
         res.json(queryResult.rows);

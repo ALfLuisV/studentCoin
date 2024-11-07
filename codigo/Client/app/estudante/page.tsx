@@ -6,7 +6,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import style from './student.module.css'
 
-
 interface VantagemResgatada {
     vantagem_aluno: string;
     vantagem_cupom: String;
@@ -14,7 +13,7 @@ interface VantagemResgatada {
     vantagem_desc: string,
     vantagem_id: number;
     vantagem_nome: String,
-    vavantagem_nomeempresa: String;
+    vantagem_nomeempresa: String;
     vantagem_valor: Number;
 }
 
@@ -49,6 +48,8 @@ export default function PainelEstudante() {
 
     async function handleResgatarVantagem() {
         if (vantagemSelecionada && (alunoLogado?.moedas ?? 0) >= vantagemSelecionada.vantagem_valor) {
+            let responseData = 0
+            let vantagemResgatada = []
             try {
                 console.log(alunoLogado?.cpf)
                 const response = await Axios.post("http://localhost:3001/resgate/", {
@@ -58,6 +59,8 @@ export default function PainelEstudante() {
                     valor: vantagemSelecionada.vantagem_valor,
                     cupom: String(gerarCodigo()),
                 });
+                console.log("id da vantagem resgatada", response.data)
+                responseData = response.data
             } catch (error) {
                 alert("Erro ao registrar resgate")
 
@@ -71,8 +74,20 @@ export default function PainelEstudante() {
                 alert("Erro ao descontar moedas da conta")
             }
 
+            try {
+                const Resgatada = await Axios.get(`http://localhost:3001/resgate/get-vantagem/${responseData}`);
+                vantagemResgatada = Resgatada.data[0]
+            } catch (error) {
+                alert("erro")
+            }
+
+            
+            if (alunoLogado && vantagemResgatada) {
+                await emailSender(alunoLogado, vantagemResgatada)
+            }
 
             fetchStudentInfo()
+            fetchVantagensResgatadas()
 
             alert(`Vantagem "${vantagemSelecionada.vantagem_nome}" resgatada com sucesso!`)
             setVantagemSelecionada(null)
@@ -96,7 +111,7 @@ export default function PainelEstudante() {
         if (alunoLogado?.cpf) {
             try {
                 const vantagensObtidas = await Axios.get(`http://localhost:3001/resgate/get/${alunoLogado?.cpf}`)
-                setVantagensResgatadas(vantagensObtidas.data)
+                setVantagensResgatadas(tratarArrayDeTransacao(vantagensObtidas.data))
             } catch (error) {
                 alert("Erro ao recuperar vantagens obtidas")
             }
@@ -112,6 +127,79 @@ export default function PainelEstudante() {
             alert("Impossivel buscar informações do estudante")
         }
     }
+
+    async function emailSender(student: aluno, vantagemResgatada: VantagemResgatada) {
+        try {
+            const email = await Axios.post("http://localhost:3001/email/send-email", {
+                to: alunoLogado?.email,
+                subject: generateEmailSubject(vantagemResgatada),
+                text: generateEmailText(student, vantagemResgatada),
+            });
+
+            alert("Email enviado com sucesso")
+        } catch (error) {
+            alert("Email não enviado")
+        }
+    }
+
+    function generateEmailSubject(vantagemResgatada: VantagemResgatada){
+        return `Confirmação de Resgate de Vantagem - ${vantagemResgatada.vantagem_nome}`
+    }
+
+
+    function generateEmailText(student: aluno, vantagemResgatada: VantagemResgatada) {
+
+        let dataCorreta = tratarData(vantagemResgatada.vantagem_data)
+
+        return `Olá, ${student.nome}!
+
+Parabéns! Seu resgate foi confirmado com sucesso. Aqui estão os detalhes da sua vantagem resgatada:
+
+🎉 Detalhes do Resgate:
+
+Nome do Estudante: ${student.nome}
+Vantagem: ${vantagemResgatada.vantagem_nome}
+Descrição: ${vantagemResgatada.vantagem_desc}
+Data do Resgate: ${dataCorreta}
+Empresa Fornecedora: ${vantagemResgatada.vantagem_nomeempresa}
+
+
+🎟️ Cupom:
+Utilize o seguinte cupom para resgatar sua vantagem: ${vantagemResgatada.vantagem_cupom}
+
+Agradecemos por usar nossa plataforma para trocar suas moedas por vantagens. Caso tenha alguma dúvida ou precise de ajuda, sinta-se à vontade para entrar em contato conosco.
+
+Boas trocas!
+
+Atenciosamente,
+Equipe Student-Tech`
+    }
+
+    function tratarArrayDeTransacao(array: any[]) {
+        array.map((element) => {
+            const data = new Date(element.vantagem_data);
+
+            element.vantagem_data = data.toLocaleString("pt-BR", {
+                day: "2-digit",
+                month: "2-digit",
+                year: "numeric",
+            });
+        });
+        return array;
+    }
+
+    function tratarData(dataaa: Date){
+        const data = new Date(dataaa);
+
+        let dataCorreta= data.toLocaleString("pt-BR", {
+                day: "2-digit",
+                month: "2-digit",
+                year: "numeric",
+            });
+
+        return dataCorreta
+    }
+
 
 
     function gerarCodigo() {
